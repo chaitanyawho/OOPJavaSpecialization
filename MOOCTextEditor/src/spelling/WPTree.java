@@ -3,10 +3,10 @@
  */
 package spelling;
 
-//import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 /**
  * WPTree implements WordPath by dynamically creating a tree of words during a Breadth First
@@ -24,12 +24,13 @@ public class WPTree implements WordPath {
 	
 	// This constructor is used by the Text Editor Application
 	// You'll need to create your own NearbyWords object here.
+	Dictionary d;
 	public WPTree () {
 		this.root = null;
 		// TODO initialize a NearbyWords object
-		// Dictionary d = new DictionaryHashSet();
-		// DictionaryLoader.loadDictionary(d, "data/dict.txt");
-		// this.nw = new NearbyWords(d);
+		 d = new DictionaryHashSet();
+		 DictionaryLoader.loadDictionary(d, "data/dict.txt");
+		 this.nw = new NearbyWords(d);
 	}
 	
 	//This constructor will be used by the grader code
@@ -42,7 +43,32 @@ public class WPTree implements WordPath {
 	public List<String> findPath(String word1, String word2) 
 	{
 	    // TODO: Implement this method.
-	    return new LinkedList<String>();
+		List<String> path = new LinkedList<>();
+		
+		if(!(nw.dict.isWord(word1)&&(nw.dict.isWord(word2))))
+			return path;
+		
+		Queue<WPTreeNode> q = new LinkedList<WPTreeNode>();
+		HashSet<String> visited = new HashSet<String>();   // to avoid exploring the same  
+		int THRESHOLD = 1000;
+		root = new WPTreeNode(word1, null);
+		WPTreeNode curr = root;
+		q.add(root);
+		while(!(q.isEmpty()||curr.getWord().equals(word2))&&THRESHOLD-->0) {
+			curr = q.remove();
+			for(String s: nw.distanceOne(curr.getWord(), true)){
+				if(!visited.contains(s)) {
+					curr.addChild(s);
+					visited.add(s);
+					WPTreeNode child = new WPTreeNode(s, curr);
+					q.add(child);
+					if(s.equals(word2))
+						return child.buildPathToRoot();
+				}
+			}
+		}
+		
+	    return path;
 	}
 	
 	// Method to print a list of WPTreeNodes (useful for debugging)
@@ -56,6 +82,9 @@ public class WPTree implements WordPath {
 		return ret;
 	}
 	
+
+
+
 }
 
 /* Tree Node in a WordPath Tree. This is a standard tree with each
